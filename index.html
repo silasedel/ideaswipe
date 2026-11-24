@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#111418">
+<title>IdeaSwipe — swipe on YouTube video ideas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='1' x2='1' y2='0'><stop offset='0' stop-color='%23fd267a'/><stop offset='1' stop-color='%23ff7854'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><path d='M38 28 L74 50 L38 72Z' fill='white'/></svg>">
+<style>
+:root{
+  --grad:linear-gradient(45deg,#fd267a,#ff6036);
+  --bg:#111418; --panel:#1b1f25; --panel2:#242a32; --text:#fff; --muted:#8b95a3;
+  --nope:#ff4458; --like:#1ee3a1; --super:#3ca4ff; --rewind:#f5b748;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:0}
+input,textarea{font-family:inherit}
+.app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px;padding-top:max(14px,env(safe-area-inset-top))}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:26px;letter-spacing:-1px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;cursor:pointer;user-select:none}
+.logo svg{width:30px;height:30px}
+.hbtn{background:none;color:var(--muted);padding:6px;border-radius:50%;display:grid;place-items:center}
+.hbtn svg{width:26px;height:26px}
+.hbtn:hover{color:#fff}
+
+main{flex:1;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;padding:8px 18px 24px}
+.screen.active{display:flex}
+
+/* home */
+.hero{text-align:center;margin:18px 0 26px}
+.hero h1{font-size:30px;margin:0 0 8px;letter-spacing:-.5px}
+.hero p{color:var(--muted);margin:0;font-size:15px;line-height:1.45}
+.pill{display:block;width:100%;padding:16px;border-radius:999px;font-size:16px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:12px;transition:transform .1s}
+.pill:active{transform:scale(.97)}
+.pill.primary{background:var(--grad);color:#fff;box-shadow:0 8px 24px rgba(253,38,122,.3)}
+.pill.ghost{background:transparent;color:#fff;border:2px solid #3a414b}
+.pill.small{padding:12px;font-size:14px}
+.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px;margin:10px 0 16px;text-transform:uppercase;letter-spacing:1px}
+.or:before,.or:after{content:"";flex:1;height:1px;background:#2d333b}
+.codebox{display:flex;gap:8px;margin-bottom:12px}
+.field{width:100%;background:var(--panel);border:2px solid #2d333b;border-radius:14px;color:#fff;font-size:16px;padding:14px 16px;outline:none}
+.field:focus{border-color:#fd4f6a}
+.codebox .field{text-align:center;font-weight:700;letter-spacing:1px}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:26px 0 10px;font-weight:700}
+.list-item{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.list-item:hover{background:var(--panel2)}
+.list-item .thumb{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:24px;flex-shrink:0}
+.list-item .meta{flex:1;min-width:0}
+.list-item .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item .sub{font-size:13px;color:var(--muted)}
+.list-item .x{background:none;color:var(--muted);font-size:20px;padding:4px 8px}
+.empty-note{color:var(--muted);font-size:14px;text-align:center;padding:10px}
+
+/* create */
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+textarea.field{min-height:84px;resize:vertical;line-height:1.4}
+.idea-row{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border-radius:14px;padding:12px;margin-bottom:8px}
+.idea-row .em{font-size:22px;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex-shrink:0}
+.idea-row .t{font-weight:600;word-break:break-word}
+.idea-row .d{font-size:13px;color:var(--muted);margin-top:2px;word-break:break-word}
+.idea-row .x{margin-left:auto;background:none;color:var(--muted);font-size:20px;padding:0 4px}
+.add-wrap{background:var(--panel);border-radius:16px;padding:12px;margin-bottom:14px}
+.add-wrap .field{background:var(--bg);margin-bottom:8px;padding:12px 14px}
+.add-wrap textarea.field{min-height:56px}
+.hint{font-size:12px;color:var(--muted);margin:-4px 0 10px;line-height:1.4}
+.link-btn{background:none;color:#ff6b81;font-weight:700;font-size:14px;padding:4px 0}
+.counter{color:var(--muted);font-size:13px;margin:4px 0 10px}
+
+/* share */
+.share-card{background:var(--panel);border-radius:22px;padding:24px 20px;text-align:center;margin-top:8px}
+.share-card h2{margin:0 0 4px}
+.share-card .big-code{font-size:15px;word-break:break-all;background:var(--bg);border-radius:14px;padding:14px;margin:16px 0 10px;font-family:ui-monospace,Menlo,monospace;color:#ffb3c1;max-height:120px;overflow:auto;text-align:left}
+.share-card .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:14px}
+
+/* swipe */
+#swipe{padding:0}
+.deck-top{padding:0 18px 6px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted)}
+.deck-top b{color:#fff}
+.deck{position:relative;flex:1;margin:4px 12px 0;min-height:300px}
+.card{position:absolute;inset:0;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45);touch-action:none;user-select:none;will-change:transform;cursor:grab;background:#222}
+.card:active{cursor:grabbing}
+.card .art{position:absolute;inset:0;display:grid;place-items:center}
+.card .art .emoji{font-size:120px;filter:drop-shadow(0 10px 25px rgba(0,0,0,.35));transform:translateY(-40px)}
+.card .art .yt{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;display:flex;gap:6px;align-items:center}
+.card .bars{position:absolute;top:8px;left:10px;right:10px;display:flex;gap:4px;z-index:2}
+.card .bars i{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.3)}
+.card .bars i.on{background:#fff}
+.card .info{position:absolute;left:0;right:0;bottom:0;padding:90px 20px 22px;background:linear-gradient(to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,.6) 55%,transparent 100%)}
+.card .info h3{margin:0;font-size:28px;line-height:1.12;font-weight:800;letter-spacing:-.3px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.card .info p{margin:8px 0 0;font-size:16px;line-height:1.4;color:#e6e9ee}
+.card .tag{display:inline-block;margin-top:12px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.18);font-size:13px;font-weight:600}
+.stamp{position:absolute;top:46px;padding:4px 12px;border:5px solid;border-radius:10px;font-size:42px;font-weight:900;letter-spacing:2px;opacity:0;z-index:3;pointer-events:none}
+.stamp.like{left:24px;color:var(--like);border-color:var(--like);transform:rotate(-18deg)}
+.stamp.nope{right:24px;color:var(--nope);border-color:var(--nope);transform:rotate(18deg)}
+.stamp.super{left:50%;bottom:180px;top:auto;color:var(--super);border-color:var(--super);transform:translateX(-50%) rotate(-8deg);font-size:34px;text-align:center;line-height:1}
+.actions{display:flex;justify-content:center;align-items:center;gap:16px;padding:16px 0;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.act{border-radius:50%;background:var(--bg);border:2px solid;display:grid;place-items:center;transition:transform .12s,background .2s}
+.act:hover{transform:scale(1.08)}
+.act:active{transform:scale(.92)}
+.act svg{width:50%;height:50%}
+.act.sm{width:48px;height:48px}
+.act.lg{width:64px;height:64px}
+.act.rewind{border-color:var(--rewind);color:var(--rewind)}
+.act.nope{border-color:var(--nope);color:var(--nope)}
+.act.super{border-color:var(--super);color:var(--super)}
+.act.like{border-color:var(--like);color:var(--like)}
+.act:disabled{opacity:.35;transform:none}
+
+/* results */
+.done-head{text-align:center;margin:10px 0 18px}
+.done-head .burst{width:96px;height:96px;margin:0 auto 12px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:46px;box-shadow:0 0 0 10px rgba(253,38,122,.15),0 0 0 22px rgba(253,38,122,.07)}
+.done-head h2{margin:0 0 4px;font-size:26px}
+.done-head p{margin:0;color:var(--muted)}
+.res-tabs{display:flex;background:var(--panel);border-radius:999px;padding:4px;margin-bottom:14px}
+.res-tabs button{flex:1;background:none;color:var(--muted);padding:10px;border-radius:999px;font-weight:700;font-size:14px}
+.res-tabs button.on{background:var(--panel2);color:#fff}
+.res-item{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.res-item .em{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.res-item .t{font-weight:600;flex:1}
+.res-item .badge{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;text-transform:uppercase}
+.badge.super{background:rgba(60,164,255,.18);color:var(--super)}
+.badge.like{background:rgba(30,227,161,.15);color:var(--like)}
+.badge.nope{background:rgba(255,68,88,.15);color:var(--nope)}
+
+/* toast + modal */
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:#fff;color:#111;padding:12px 20px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.match{position:fixed;inset:0;background:rgba(10,12,15,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:40;text-align:center;padding:30px}
+.match.show{display:flex;animation:fade .25s}
+.match h2{font-size:44px;margin:0;font-style:italic;font-weight:900;background:linear-gradient(45deg,#3ca4ff,#7ef0ff);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-1px}
+.match p{color:#cfd6df;font-size:17px;margin:10px 0 24px;max-width:320px}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo" onclick="go('home')">
+      <svg viewBox="0 0 100 100"><defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#fd267a"/><stop offset="1" stop-color="#ff7854"/></linearGradient></defs><rect width="100" height="100" rx="26" fill="url(#lg)"/><path d="M38 28 L74 50 L38 72Z" fill="#fff"/></svg>
+      ideaswipe
+    </div>
+    <button class="hbtn" title="Make a list" onclick="startCreate()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section class="screen active" id="home">
+      <div class="hero">
+        <h1>Swipe on video ideas</h1>
+        <p>Make a list of YouTube ideas, share the code,<br>and let your friends swipe right on the bangers.</p>
+      </div>
+      <div class="codebox">
+        <input class="field" id="joinCode" placeholder="Paste a code or link" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <button class="pill primary" onclick="joinFromInput()">Start swiping</button>
+      <div class="or">or</div>
+      <button class="pill ghost" onclick="startCreate()">Create a list</button>
+      <button class="pill ghost small" onclick="playDemo()">Try a demo deck</button>
+
+      <div class="section-title">Your lists</div>
+      <div id="myLists"></div>
+      <div class="section-title">Recently swiped</div>
+      <div id="recent"></div>
+    </section>
+
+    <!-- CREATE -->
+    <section class="screen" id="create">
+      <div class="form-row">
+        <label>List name</label>
+        <input class="field" id="listName" maxlength="60" placeholder="e.g. Next month's video ideas">
+      </div>
+      <div class="form-row">
+        <label>Add an idea</label>
+        <div class="add-wrap">
+          <input class="field" id="ideaTitle" maxlength="100" placeholder="Video title / idea">
+          <textarea class="field" id="ideaDesc" maxlength="280" placeholder="Short description (optional)"></textarea>
+          <input class="field" id="ideaTag" maxlength="30" placeholder="Tag, e.g. Challenge, Vlog (optional)">
+          <button class="pill primary small" style="margin:0" onclick="addIdea()">Add idea</button>
+        </div>
+        <button class="link-btn" onclick="toggleBulk()">+ Paste many at once</button>
+        <div id="bulkWrap" style="display:none;margin-top:8px">
+          <textarea class="field" id="bulk" style="min-height:130px" placeholder="One idea per line.&#10;Title | description | tag&#10;&#10;I survived 24h in a treehouse | Building it from scratch | Challenge&#10;Ranking every fast food fry"></textarea>
+          <button class="pill ghost small" style="margin-top:8px" onclick="addBulk()">Add these</button>
+        </div>
+      </div>
+      <div class="counter" id="ideaCount">0 ideas</div>
+      <div id="ideaList"></div>
+      <div style="height:8px"></div>
+      <button class="pill primary" onclick="saveList()">Save & get share code</button>
+    </section>
+
+    <!-- SHARE -->
+    <section class="screen" id="share">
+      <div class="share-card">
+        <div style="font-size:50px">🎉</div>
+        <h2 id="shareName">Your list</h2>
+        <div class="muted" id="shareCount"></div>
+        <div class="lbl">Share link (easiest)</div>
+        <div class="big-code" id="shareLink"></div>
+        <button class="pill primary small" onclick="copyText(el('shareLink').textContent,'Link copied!')">Copy link</button>
+        <div class="lbl">Or the code</div>
+        <div class="big-code" id="shareCode"></div>
+        <button class="pill ghost small" onclick="copyText(el('shareCode').textContent,'Code copied!')">Copy code</button>
+        <button class="pill ghost small" id="nativeShare" style="display:none" onclick="nativeShare()">Share…</button>
+      </div>
+      <div style="height:14px"></div>
+      <button class="pill primary" onclick="playList(currentShare)">Swipe it yourself</button>
+      <button class="pill ghost small" onclick="editList(currentShare)">Edit list</button>
+      <p class="hint" style="text-align:center;margin-top:10px">The whole list lives inside the code, so it works for anyone with no account or sign-up.</p>
+    </section>
+
+    <!-- SWIPE -->
+    <section class="screen" id="swipe">
+      <div class="deck-top"><span id="deckName"></span><span><b id="deckPos">1</b> / <span id="deckTotal">0</span></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="actions">
+        <button class="act sm rewind" id="btnRewind" title="Undo" onclick="rewind()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V2L7 6l5 4V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg></button>
+        <button class="act lg nope" title="Nope (←)" onclick="swipeBtn('nope')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="act sm super" title="Super like (↑)" onclick="swipeBtn('super')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg></button>
+        <button class="act lg like" title="Like (→)" onclick="swipeBtn('like')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.4l-1.5-1.3C5.4 15.4 2 12.3 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.8-3.4 6.9-8.5 11.6L12 21.4z"/></svg></button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="screen" id="results">
+      <div class="done-head">
+        <div class="burst">🔥</div>
+        <h2>That's the deck!</h2>
+        <p id="resSummary"></p>
+      </div>
+      <div class="res-tabs">
+        <button class="on" data-f="yes" onclick="resTab(this)">Liked</button>
+        <button data-f="nope" onclick="resTab(this)">Passed</button>
+      </div>
+      <div id="resList"></div>
+      <div style="height:10px"></div>
+      <button class="pill primary small" onclick="copyResults()">Copy my picks</button>
+      <button class="pill ghost small" onclick="playList(activeList)">Swipe again</button>
+      <button class="pill ghost small" onclick="go('home')">Home</button>
+    </section>
+  </main>
+</div>
+
+<div class="match" id="match">
+  <div style="font-size:70px">⭐</div>
+  <h2>Super Like!</h2>
+  <p id="matchText"></p>
+  <button class="pill primary" style="max-width:300px" onclick="el('match').classList.remove('show')">Keep swiping</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const el = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- visuals: deterministic gradient + emoji per idea ---------- */
+const PALETTES = [
+  ['#ff5f6d','#ffc371'],['#7f00ff','#e100ff'],['#00c6ff','#0072ff'],['#f7971e','#ffd200'],
+  ['#11998e','#38ef7d'],['#fc466b','#3f5efb'],['#ee0979','#ff6a00'],['#8e2de2','#4a00e0'],
+  ['#f857a6','#ff5858'],['#43cea2','#185a9d'],['#ff512f','#dd2476'],['#4568dc','#b06ab3']
+];
+const EMOJI_RULES = [
+  [/food|eat|burger|fry|fries|pizza|cook|recipe|taste|snack|candy|restaurant/i,'🍔'],
+  [/game|gaming|minecraft|roblox|fortnite|gta|speedrun|play/i,'🎮'],
+  [/car|drive|race|racing|truck/i,'🏎️'],[/24 ?h|hours|day|night|overnight/i,'⏰'],
+  [/challenge|survive|survived|vs|battle|last to/i,'🏆'],[/money|\$|dollar|cheap|expensive|rich|buy/i,'💸'],
+  [/prank|funny|joke|comedy/i,'😂'],[/travel|trip|country|city|world|flight/i,'✈️'],
+  [/build|built|diy|make|made|craft/i,'🛠️'],[/scary|horror|haunted|ghost/i,'👻'],
+  [/music|song|sing|beat/i,'🎵'],[/fitness|gym|workout|run/i,'💪'],[/animal|dog|cat|pet/i,'🐶'],
+  [/tech|phone|iphone|computer|ai|robot/i,'🤖'],[/react|reacting|watch/i,'👀'],[/rank|tier|best|worst|top/i,'📊'],
+  [/vlog|life|day in/i,'📹'],[/tutorial|how to|learn|explain/i,'🧠'],[/school|class|teacher/i,'🏫'],
+  [/water|pool|ocean|beach/i,'🌊'],[/fire|hot|spicy/i,'🔥'],[/space|moon|mars/i,'🚀']
+];
+const FALLBACK_EMOJI = ['🎬','💡','✨','🎥','📺','🔥','🚀','🎯','🤯','👑'];
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function look(idea){
+  const key = (idea.t||'') + '|' + (idea.d||'');
+  const h = hash(key);
+  const p = PALETTES[h % PALETTES.length];
+  let emoji = FALLBACK_EMOJI[(h>>4) % FALLBACK_EMOJI.length];
+  for (const [re,e] of EMOJI_RULES) if (re.test(key + ' ' + (idea.g||''))) { emoji = e; break; }
+  return {bg:`linear-gradient(${(h>>8)%360}deg, ${p[0]}, ${p[1]})`, emoji};
+}
+
+/* ---------- encoding: the whole list lives in the code ---------- */
+// list = {n: name, i: [{t,d,g}]}
+const b64u = {
+  enc: bytes => { let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
+  dec: str => { str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const s=atob(str); return Uint8Array.from(s,c=>c.charCodeAt(0)); }
+};
+async function streamBytes(bytes, stream){
+  const out = new Blob([bytes]).stream().pipeThrough(stream);
+  return new Uint8Array(await new Response(out).arrayBuffer());
+}
+const canZip = typeof CompressionStream !== 'undefined';
+async function encodeList(list){
+  const slim = {n:list.n, i:list.i.map(x=>{const o={t:x.t}; if(x.d)o.d=x.d; if(x.g)o.g=x.g; return o;})};
+  const raw = new TextEncoder().encode(JSON.stringify(slim));
+  if (canZip) { try { return 'z' + b64u.enc(await streamBytes(raw, new CompressionStream('deflate-raw'))); } catch(e){} }
+  return 'j' + b64u.enc(raw);
+}
+async function decodeList(code){
+  code = code.trim();
+  const m = code.match(/[#&?]d=([A-Za-z0-9_\-]+)/); if (m) code = m[1];
+  code = code.replace(/\s+/g,'');
+  const kind = code[0], body = code.slice(1);
+  let bytes = b64u.dec(body);
+  if (kind === 'z') bytes = await streamBytes(bytes, new DecompressionStream('deflate-raw'));
+  else if (kind !== 'j') throw new Error('bad code');
+  const list = JSON.parse(new TextDecoder().decode(bytes));
+  if (!list || !Array.isArray(list.i) || !list.i.length) throw new Error('empty');
+  list.i = list.i.filter(x=>x && x.t).map(x=>({t:String(x.t).slice(0,100), d:x.d?String(x.d).slice(0,280):'', g:x.g?String(x.g).slice(0,30):''}));
+  list.n = String(list.n || 'Video ideas').slice(0,60);
+  return list;
+}
+const shareUrl = code => location.origin + location.pathname + '#d=' + code;
+
+/* ---------- storage ---------- */
+const store = {
+  get(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch(e){ return def } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} }
+};
+
+/* ---------- navigation ---------- */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id));
+  if (id==='home') { renderHome(); if (location.hash) history.replaceState(null,'',location.pathname); }
+  window.scrollTo(0,0);
+}
+function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1800); }
+async function copyText(text,msg){
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast(msg||'Copied!');
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const mine = store.get('is_mine',[]), recent = store.get('is_recent',[]);
+  el('myLists').innerHTML = mine.length ? mine.map((l,ix)=>listRow(l,ix,'mine')).join('') : '<div class="empty-note">No lists yet — tap “Create a list”.</div>';
+  el('recent').innerHTML = recent.length ? recent.map((l,ix)=>listRow(l,ix,'recent')).join('') : '<div class="empty-note">Lists you swipe on show up here.</div>';
+}
+function listRow(l,ix,kind){
+  const lk = look(l.i[0]||{t:l.n});
+  return `<div class="list-item" onclick="openSaved('${kind}',${ix})">
+    <div class="thumb" style="background:${lk.bg}">${lk.emoji}</div>
+    <div class="meta"><div class="name">${esc(l.n)}</div><div class="sub">${l.i.length} ideas${l.liked!=null?` · ${l.liked} liked`:''}</div></div>
+    <button class="x" title="Remove" onclick="event.stopPropagation();removeSaved('${kind}',${ix})">×</button></div>`;
+}
+function openSaved(kind,ix){
+  const l = store.get(kind==='mine'?'is_mine':'is_recent',[])[ix]; if(!l) return;
+  if (kind==='mine') showShare(l); else playList(l);
+}
+function removeSaved(kind,ix){
+  const key = kind==='mine'?'is_mine':'is_recent'; const arr = store.get(key,[]);
+  arr.splice(ix,1); store.set(key,arr); renderHome();
+}
+async function joinFromInput(){
+  const v = el('joinCode').value.trim();
+  if (!v) { toast('Paste a code or link first'); return; }
+  try { const list = await decodeList(v); el('joinCode').value=''; playList(list, true); }
+  catch(e){ toast("That code didn't work 🤔"); }
+}
+el('joinCode').addEventListener('keydown', e=>{ if(e.key==='Enter') joinFromInput(); });
+
+/* ---------- create ---------- */
+let draft = {n:'', i:[]}, editingIx = -1;
+function startCreate(){ draft={n:'',i:[]}; editingIx=-1; el('listName').value=''; renderDraft(); go('create'); setTimeout(()=>el('listName').focus(),50); }
+function editList(l){
+  const mine = store.get('is_mine',[]);
+  editingIx = mine.findIndex(x=>x.id===l.id);
+  draft = JSON.parse(JSON.stringify(l)); el('listName').value = draft.n; renderDraft(); go('create');
+}
+function addIdea(){
+  const t = el('ideaTitle').value.trim(); if(!t){ el('ideaTitle').focus(); toast('Give the idea a title'); return; }
+  draft.i.push({t, d:el('ideaDesc').value.trim(), g:el('ideaTag').value.trim()});
+  el('ideaTitle').value=''; el('ideaDesc').value=''; el('ideaTitle').focus(); renderDraft();
+}
+el('ideaTitle').addEventListener('keydown', e=>{ if(e.key==='Enter') addIdea(); });
+function toggleBulk(){ const w=el('bulkWrap'); w.style.display = w.style.display==='none'?'block':'none'; }
+function addBulk(){
+  let n=0;
+  el('bulk').value.split('\n').forEach(line=>{
+    const [t,d,g] = line.split('|').map(s=>(s||'').trim());
+    if (t) { draft.i.push({t:t.slice(0,100), d:(d||'').slice(0,280), g:(g||'').slice(0,30)}); n++; }
+  });
+  el('bulk').value=''; renderDraft(); toast(`Added ${n} idea${n===1?'':'s'}`);
+}
+function removeIdea(ix){ draft.i.splice(ix,1); renderDraft(); }
+function renderDraft(){
+  el('ideaCount').textContent = `${draft.i.length} idea${draft.i.length===1?'':'s'}`;
+  el('ideaList').innerHTML = draft.i.map((x,ix)=>{ const lk=look(x); return `<div class="idea-row">
+    <div class="em" style="background:${lk.bg}">${lk.emoji}</div>
+    <div><div class="t">${esc(x.t)}</div>${x.d?`<div class="d">${esc(x.d)}</div>`:''}${x.g?`<div class="d">#${esc(x.g)}</div>`:''}</div>
+    <button class="x" onclick="removeIdea(${ix})">×</button></div>`; }).join('');
+}
+async function saveList(){
+  draft.n = el('listName').value.trim() || 'My video ideas';
+  if (el('ideaTitle').value.trim()) addIdea();
+  if (draft.i.length < 1) { toast('Add at least one idea'); return; }
+  draft.id = draft.id || Date.now().toString(36);
+  const mine = store.get('is_mine',[]);
+  if (editingIx>=0 && mine[editingIx]) mine[editingIx]=draft; else mine.unshift(draft);
+  store.set('is_mine', mine.slice(0,50));
+  showShare(draft);
+}
+
+/* ---------- share ---------- */
+let currentShare=null;
+async function showShare(l){
+  currentShare = l;
+  const code = await encodeList(l);
+  el('shareName').textContent = l.n;
+  el('shareCount').textContent = `${l.i.length} idea${l.i.length===1?'':'s'}`;
+  el('shareLink').textContent = shareUrl(code);
+  el('shareCode').textContent = code;
+  el('nativeShare').style.display = navigator.share ? 'block' : 'none';
+  go('share');
+}
+function nativeShare(){ navigator.share({title:'IdeaSwipe: '+currentShare.n, text:'Swipe on my video ideas 👉', url:el('shareLink').textContent}).catch(()=>{}); }
+
+/* ---------- swipe deck ---------- */
+let activeList=null, idx=0, votes=[], busy=false;
+function playList(list, fromCode){
+  activeList = {n:list.n, i:list.i, id:list.id};
+  idx=0; votes=[];
+  el('deckName').textContent = list.n; el('deckTotal').textContent = list.i.length;
+  if (fromCode) {
+    const rec = store.get('is_recent',[]).filter(r=>r.n!==list.n || r.i.length!==list.i.length);
+    rec.unshift({n:list.n,i:list.i}); store.set('is_recent', rec.slice(0,20));
+  }
+  go('swipe'); renderDeck();
+}
+function playDemo(){
+  playList({n:'Demo: Viral video ideas', i:[
+    {t:'I Survived 24 Hours in a Treehouse I Built',d:'Build it from scratch, then spend a full day and night up there.',g:'Challenge'},
+    {t:'Ranking Every Fast Food Fry',d:'Blind taste test of 12 chains. Brutal honest tier list.',g:'Food'},
+    {t:'$1 vs $1,000 Gaming Setup',d:'Can a dirt-cheap setup actually beat the expensive one?',g:'Tech'},
+    {t:'Last to Leave the Pool Wins',d:'5 friends, one pool, a cash prize.',g:'Challenge'},
+    {t:'I Let AI Plan My Entire Day',d:'Every decision made by a chatbot for 24 hours.',g:'Vlog'},
+    {t:'Spending a Night in a Haunted Hotel',d:'Cameras everywhere. Something definitely moved.',g:'Horror'},
+    {t:'Learning to Skateboard in 7 Days',d:'From total beginner to landing a kickflip.',g:'Learn'},
+    {t:'Reacting to My First Ever Video',d:'Cringe level: maximum.',g:'React'}
+  ]});
+}
+function renderDeck(){
+  const deck = el('deck'); deck.innerHTML='';
+  el('deckPos').textContent = Math.min(idx+1, activeList.i.length);
+  el('btnRewind').disabled = votes.length===0;
+  if (idx >= activeList.i.length) { showResults(); return; }
+  const end = Math.min(idx+2, activeList.i.length);
+  for (let k=end-1;k>=idx;k--) deck.appendChild(makeCard(activeList.i[k], k, k===idx));
+}
+function makeCard(idea, k, top){
+  const lk = look(idea), total = activeList.i.length;
+  const c = document.createElement('div'); c.className='card';
+  const bars = total<=20 ? `<div class="bars">${activeList.i.map((_,j)=>`<i class="${j===k?'on':''}"></i>`).join('')}</div>` : '';
+  c.innerHTML = `${bars}<div class="art" style="background:${lk.bg}"><div class="emoji">${lk.emoji}</div>
+      <div class="yt"><svg width="14" height="10" viewBox="0 0 14 10"><rect width="14" height="10" rx="3" fill="#ff0033"/><path d="M5.5 2.8v4.4L9.3 5z" fill="#fff"/></svg>Video idea</div></div>
+    <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div><div class="stamp super">SUPER<br>LIKE</div>
+    <div class="info"><h3>${esc(idea.t)}</h3>${idea.d?`<p>${esc(idea.d)}</p>`:''}${idea.g?`<span class="tag">#${esc(idea.g)}</span>`:''}</div>`;
+  if (!top) { c.style.transform='scale(.95) translateY(10px)'; c.style.transition='transform .3s'; }
+  else attachDrag(c);
+  return c;
+}
+function attachDrag(card){
+  let sx=0, sy=0, dx=0, dy=0, dragging=false;
+  const like=card.querySelector('.stamp.like'), nope=card.querySelector('.stamp.nope'), sup=card.querySelector('.stamp.super');
+  const next = () => card.previousElementSibling;
+  card.addEventListener('pointerdown', e=>{ if(busy) return; dragging=true; sx=e.clientX; sy=e.clientY; dx=dy=0; card.setPointerCapture(e.pointerId); card.style.transition='none'; });
+  card.addEventListener('pointermove', e=>{
+    if(!dragging) return; dx=e.clientX-sx; dy=e.clientY-sy;
+    card.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/14}deg)`;
+    like.style.opacity = Math.max(0, Math.min(1, dx/100));
+    nope.style.opacity = Math.max(0, Math.min(1, -dx/100));
+    sup.style.opacity = Math.abs(dx)<60 ? Math.max(0, Math.min(1, -dy/110)) : 0;
+    const n=next(); if(n){ const p=Math.min(1,Math.hypot(dx,dy)/150); n.style.transition='none'; n.style.transform=`scale(${.95+.05*p}) translateY(${10-10*p}px)`; }
+  });
+  const end = ()=>{
+    if(!dragging) return; dragging=false;
+    if (dx>110) fling(card,'like',dx,dy);
+    else if (dx<-110) fling(card,'nope',dx,dy);
+    else if (dy<-120 && Math.abs(dx)<90) fling(card,'super',dx,dy);
+    else {
+      card.style.transition='transform .35s cubic-bezier(.2,1.4,.4,1)'; card.style.transform='';
+      [like,nope,sup].forEach(s=>s.style.opacity=0);
+      const n=next(); if(n){ n.style.transition='transform .3s'; n.style.transform='scale(.95) translateY(10px)'; }
+    }
+  };
+  card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
+}
+function fling(card, vote, dx=0, dy=0){
+  busy=true;
+  const W = window.innerWidth;
+  let tx, ty, rot;
+  if (vote==='like'){ tx=W*1.3; ty=dy*1.5; rot=30; card.querySelector('.stamp.like').style.opacity=1; }
+  else if (vote==='nope'){ tx=-W*1.3; ty=dy*1.5; rot=-30; card.querySelector('.stamp.nope').style.opacity=1; }
+  else { tx=dx; ty=-window.innerHeight*1.2; rot=0; card.querySelector('.stamp.super').style.opacity=1; }
+  card.style.transition='transform .4s ease-out'; card.style.transform=`translate(${tx}px,${ty}px) rotate(${rot}deg)`;
+  const n=card.previousElementSibling; if(n){ n.style.transition='transform .3s'; n.style.transform='none'; }
+  const idea = activeList.i[idx];
+  votes.push(vote); idx++;
+  if (navigator.vibrate) navigator.vibrate(vote==='super'?[15,40,15]:12);
+  setTimeout(()=>{ busy=false; renderDeck();
+    if (vote==='super'){ el('matchText').textContent = `“${idea.t}” is a must-make.`; el('match').classList.add('show'); }
+  }, 330);
+}
+function swipeBtn(vote){
+  if (busy || !activeList || idx>=activeList.i.length) return;
+  const card = el('deck').lastElementChild; if(!card) return;
+  const s = card.querySelector('.stamp.'+vote); s.style.transition='opacity .15s'; s.style.opacity=1;
+  setTimeout(()=>fling(card, vote), 120);
+}
+function rewind(){
+  if (busy || !votes.length) return;
+  votes.pop(); idx--; renderDeck();
+  const c=el('deck').lastElementChild; c.style.transition='none'; c.style.transform='translateY(-30px) scale(1.04)';
+  requestAnimationFrame(()=>{ c.style.transition='transform .35s cubic-bezier(.2,1.4,.4,1)'; c.style.transform=''; });
+}
+document.addEventListener('keydown', e=>{
+  if (!el('swipe').classList.contains('active') || el('match').classList.contains('show')) {
+    if (e.key==='Enter' || e.key==='Escape') el('match').classList.remove('show');
+    return;
+  }
+  if (e.key==='ArrowRight') swipeBtn('like');
+  else if (e.key==='ArrowLeft') swipeBtn('nope');
+  else if (e.key==='ArrowUp') swipeBtn('super');
+  else if (e.key==='Backspace' || e.key==='ArrowDown') rewind();
+});
+
+/* ---------- results ---------- */
+function showResults(){
+  const liked = votes.filter(v=>v!=='nope').length, sup = votes.filter(v=>v==='super').length;
+  el('resSummary').textContent = `You liked ${liked} of ${votes.length}${sup?` · ${sup} super like${sup>1?'s':''}`:''}`;
+  const rec = store.get('is_recent',[]); const r = rec.find(x=>x.n===activeList.n && x.i.length===activeList.i.length);
+  if (r){ r.liked=liked; store.set('is_recent',rec); }
+  document.querySelectorAll('.res-tabs button').forEach((b,i)=>b.classList.toggle('on',i===0));
+  renderRes('yes'); go('results');
+}
+function resTab(b){ document.querySelectorAll('.res-tabs button').forEach(x=>x.classList.toggle('on',x===b)); renderRes(b.dataset.f); }
+function renderRes(f){
+  const rows = activeList.i.map((x,k)=>({x,v:votes[k]})).filter(r=> f==='yes' ? r.v!=='nope' : r.v==='nope')
+    .sort((a,b)=>(b.v==='super')-(a.v==='super'));
+  el('resList').innerHTML = rows.length ? rows.map(({x,v})=>{const lk=look(x); return `<div class="res-item">
+    <div class="em" style="background:${lk.bg}">${lk.emoji}</div><div class="t">${esc(x.t)}</div>
+    <span class="badge ${v}">${v==='super'?'⭐ Super':v==='like'?'Like':'Nope'}</span></div>`}).join('')
+    : `<div class="empty-note">${f==='yes'?'You didn’t like any — tough crowd!':'You liked everything 🔥'}</div>`;
+}
+function copyResults(){
+  const lines = activeList.i.map((x,k)=>{ const v=votes[k]; return `${v==='super'?'⭐':v==='like'?'💚':'❌'} ${x.t}`; });
+  copyText(`My picks for "${activeList.n}" (IdeaSwipe):\n` + lines.join('\n'), 'Picks copied — send them back!');
+}
+
+/* ---------- boot: open shared link ---------- */
+async function boot(){
+  if (location.hash.includes('d=')) {
+    try { const list = await decodeList(location.hash); playList(list, true); return; }
+    catch(e){ toast("That link didn't work 🤔"); }
+  }
+  renderHome();
+}
+window.addEventListener('hashchange', boot);
+boot();
+</script>
+</body>
+</html>
