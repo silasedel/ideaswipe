@@ -66,7 +66,7 @@ a{color:inherit}
 .btn.sm{padding:8px 14px;font-size:14px}
 
 /* ---------- main ---------- */
-.main{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
+main.main{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
 .topbar{display:none}
 .view{display:none;flex:1;min-height:0;overflow-y:auto}
 .view.on{display:flex;flex-direction:column}
@@ -82,6 +82,17 @@ a{color:inherit}
 
 /* create */
 .addbar{display:flex;gap:8px}
+.pic{width:44px;height:44px;flex-shrink:0;border-radius:6px;border:1px dashed #b9c0c8;color:var(--ink2);display:grid;place-items:center;background:#fff center/cover no-repeat;position:relative}
+.pic:hover{border-color:var(--brand1);color:var(--brand1)}
+.pic svg{width:22px;height:22px}
+.pic.has{border:0}
+.pic.has svg{display:none}
+.thumbbtn{position:relative;flex-shrink:0;cursor:pointer;padding:0;border-radius:5px}
+.idea .thumbbtn .swatch{width:60px;height:34px}
+.thumbbtn:hover::after{content:"Change";position:absolute;inset:0;border-radius:5px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:600;display:grid;place-items:center}
+.idea .rmimg{font-size:12px;color:var(--ink2);padding:0;margin-top:2px}
+.idea .rmimg:hover{color:var(--nope)}
+.swatch.img{background-size:cover;background-position:center}
 .plus{width:44px;height:44px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(90deg,var(--brand1),var(--brand2))}
 .plus:hover{filter:brightness(1.06)}
 .plus svg{width:20px;height:20px}
@@ -121,6 +132,9 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 .deck{position:relative;width:100%;max-width:400px;height:min(600px,calc(100vh - 230px));min-height:360px}
 .card{position:absolute;inset:0;border-radius:10px;overflow:hidden;background:var(--c);color:var(--k);box-shadow:0 2px 10px rgba(0,0,0,.18);touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;cursor:grab;display:flex;flex-direction:column}
 .card:active{cursor:grabbing}
+.card .shot{width:100%;aspect-ratio:16/9;background:#000 center/cover no-repeat;flex-shrink:0;position:relative}
+.card .shot + .no{position:absolute;top:0;left:0;right:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);opacity:1}
+.card.withshot .hl{padding-top:14px;padding-bottom:14px}
 .card .no{padding:18px 20px 0;font:13px/1 ui-monospace,Menlo,monospace;opacity:.75;display:flex;justify-content:space-between}
 .card .hl{flex:1;display:flex;align-items:center;padding:0 22px;font-family:Anton,Impact,"Arial Narrow Bold",sans-serif;text-transform:uppercase;line-height:1.02;letter-spacing:.2px;word-break:break-word}
 .card .info{padding:16px 20px 20px;background:rgba(0,0,0,.22);color:#fff}
@@ -160,8 +174,8 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 /* ---------- phone ---------- */
 @media (max-width:820px){
   .shell{display:block}
-  .side,.main{height:100%}
-  .shell.at-home .main{display:none}
+  .side,main.main{height:100%}
+  .shell.at-home main.main{display:none}
   .shell:not(.at-home) .side{display:none}
   .topbar{display:flex;align-items:center;gap:6px;height:56px;padding:0 8px;padding-top:env(safe-area-inset-top);box-sizing:content-box;background:#fff;border-bottom:1px solid var(--line);flex-shrink:0}
   .topbar .back{display:flex;align-items:center;gap:2px;font-weight:600;padding:8px;color:var(--brand1)}
@@ -231,9 +245,12 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
         <div class="fld">
           <label for="ideaTitle">Add an idea</label>
           <form class="addbar" onsubmit="event.preventDefault();addIdea()">
+            <button class="pic" type="button" id="picBtn" title="Add a thumbnail (optional)" aria-label="Add a thumbnail" onclick="pickFor(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></button>
             <input class="input" id="ideaTitle" maxlength="100" placeholder="Type a video idea" autocomplete="off">
             <button class="plus" type="submit" title="Add" aria-label="Add idea"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></button>
           </form>
+          <div class="muted" style="margin-top:6px">Thumbnails are optional. Click the picture button, or paste an image.</div>
+          <input type="file" id="fileIn" accept="image/*" hidden>
         </div>
         <div class="count" id="ideaCount">0 ideas</div>
         <div class="ideas" id="ideaList"></div>
@@ -255,7 +272,7 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
           <div class="copyrow"><input class="input" id="shareLink" readonly onclick="this.select()"><button class="btn line sm" onclick="copyText(el('shareLink').value,'Link copied')">Copy</button></div>
         </div>
         <div class="share-actions">
-          <button class="btn main" onclick="playList(currentShare)">Swipe it yourself</button>
+          <button class="btn main" onclick="swipeOwn(currentShare)">Swipe it yourself</button>
           <button class="btn line" onclick="editList(currentShare)">Edit</button>
           <button class="btn line" id="nativeShare" style="display:none" onclick="nativeShare()">Share…</button>
         </div>
@@ -313,7 +330,10 @@ const db = {
     return r.json();
   }
 };
-const clean = (l, v) => ({n:l.n, u:Date.now(), v, i:l.i.slice(0,100).map(x=>{const o={t:x.t}; if(x.d)o.d=x.d; if(x.g)o.g=x.g; return o;})});
+const clean = (l, v) => ({n:l.n, u:Date.now(), v, i:l.i.slice(0,100).map(x=>{const o={t:x.t}; if(x.d)o.d=x.d; if(x.g)o.g=x.g; if(x.p)o.p=x.p; return o;})});
+const isImg = p => typeof p==='string' && p.length<=80000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p);
+// local copies skip thumbnails (browser storage is small); they're fetched again when a list is opened
+const slim = l => ({...l, i:l.i.map(({p,...x})=>x)});
 function randStr(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a,b=>b.toString(16).padStart(2,'0')).join(''); }
 function randSecret(){ const a=new Uint8Array(18); crypto.getRandomValues(a); return Array.from(a,b=>b.toString(16).padStart(2,'0')).join(''); }
 function randCode(){ const a=new Uint32Array(1); crypto.getRandomValues(a); return String(1000 + a[0] % 9000); }
@@ -333,7 +353,7 @@ async function deleteRemote(code, secret){ await db.patch({['pub/'+code]: null, 
 function normalize(list){
   if (!list || typeof list !== 'object') return null;
   const items = Array.isArray(list.i) ? list.i : Object.values(list.i||{});
-  const i = items.filter(x=>x && x.t).map(x=>({t:String(x.t).slice(0,100), d:x.d?String(x.d).slice(0,280):'', g:x.g?String(x.g).slice(0,30):''}));
+  const i = items.filter(x=>x && x.t).map(x=>({t:String(x.t).slice(0,100), d:x.d?String(x.d).slice(0,280):'', g:x.g?String(x.g).slice(0,30):'', p:isImg(x.p)?x.p:''}));
   if (!i.length) return null;
   return {n:String(list.n||'Video ideas').slice(0,60), i, u:list.u||0};
 }
@@ -347,7 +367,7 @@ const COLORS = [
 function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function colorOf(idea){ const [c,k] = COLORS[hash((idea.t||'')+'|'+(idea.d||'')) % COLORS.length]; return {c,k,light:k!=='#fff'}; }
 function initials(t){ return (t||'?').replace(/[^A-Za-z0-9 ]/g,'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '#'; }
-function swatch(idea){ const {c,k}=colorOf(idea); return `<div class="swatch" style="background:${c};color:${k}">${esc(initials(idea.t))}</div>`; }
+function swatch(idea){ if (idea.p) return `<div class="swatch img" style="background-image:url(${idea.p})"></div>`; const {c,k}=colorOf(idea); return `<div class="swatch" style="background:${c};color:${k}">${esc(initials(idea.t))}</div>`; }
 
 /* ---------- old long links (#d=...) still open ---------- */
 const b64dec = str => { str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const s=atob(str); return Uint8Array.from(s,c=>c.charCodeAt(0)); };
@@ -372,7 +392,7 @@ function go(id){
   el('shell').classList.toggle('at-home', home);
   view = home ? 'empty' : id;
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='v-'+view));
-  el('topTitle').textContent = id==='swipe' && activeList ? activeList.n : (TITLES[id]||'');
+  el('topTitle').textContent = id==='swipe' && activeList ? activeList.n : id==='create' ? el('createTitle').textContent : (TITLES[id]||'');
   if (home && location.hash) history.replaceState(null,'',location.pathname);
   renderSide();
 }
@@ -401,20 +421,27 @@ function renderSide(){
       <button class="del" title="Remove" onclick="event.stopPropagation();removeSaved(${ix})"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>`;
   }).join('');
 }
+// get the latest copy (with thumbnails) from the server; null if it can't be reached
+async function latest(l){
+  if (!l.code) return l;
+  try {
+    const fresh = await Promise.race([fetchList(l.code), new Promise((_,rej)=>setTimeout(()=>rej(new Error('slow')),8000))]);
+    if (!fresh) return {...l, gone:true};
+    return {...l, n:fresh.n, i:fresh.i, full:true};
+  } catch(e){ return null; }
+}
+let opening = false;
 async function openSaved(ix){
+  if (opening) return;
   const arr = store.get(KEY[sideKind],[]); const l = arr[ix]; if(!l) return;
   if (sideKind==='mine') { showShare(l); return; }
-  playList(l);
-  // pick up any edits the creator made since it was added
-  if (l.code) try {
-    const fresh = await fetchList(l.code);
-    if (!fresh) return;
-    if (JSON.stringify(fresh.i)!==JSON.stringify(l.i) || fresh.n!==l.n) {
-      Object.assign(l, {n:fresh.n, i:fresh.i}); store.set(KEY.recent, arr);
-      if (activeList && activeList.code===l.code && idx===0) { playList(l); toast('This list was updated'); }
-      else renderSide();
-    }
-  } catch(e){}
+  opening = true; document.body.style.cursor='progress';
+  const full = await latest(l);
+  opening = false; document.body.style.cursor='';
+  if (full && full.gone) { toast('The creator deleted this list'); return; }
+  if (full) { Object.assign(arr[ix], slim({n:full.n, i:full.i})); store.set(KEY.recent, arr); }
+  playList(full || l);
+  if (!full) toast("Offline, so thumbnails won't show");
 }
 async function removeSaved(ix){
   const key = KEY[sideKind]; const arr = store.get(key,[]); const l = arr[ix]; if (!l) return;
@@ -430,7 +457,7 @@ function addToAdded(code, list){
   const arr = store.get(KEY.recent,[]);
   const old = arr.find(x=>x.code===code);
   const entry = {code, n:list.n, i:list.i, liked: old ? old.liked : null};
-  store.set(KEY.recent, [entry, ...arr.filter(x=>x.code!==code)].slice(0,100));
+  store.set(KEY.recent, [slim(entry), ...arr.filter(x=>x.code!==code)].slice(0,100));
   return entry;
 }
 el('joinCode').addEventListener('input', e=>{ e.target.value = e.target.value.replace(/\D/g,'').slice(0,4); });
@@ -451,20 +478,60 @@ async function joinFromInput(){
 
 /* ---------- create / edit ---------- */
 let draft = {n:'', i:[]};
-function startCreate(){ draft={n:'',i:[]}; el('listName').value=''; el('createTitle').textContent='New list'; renderDraft(); go('create'); setTimeout(()=>el('listName').focus(),30); }
-function editList(l){ draft = JSON.parse(JSON.stringify(l)); el('listName').value=draft.n; el('createTitle').textContent='Edit list'; renderDraft(); go('create'); }
+function startCreate(){ draft={n:'',i:[]}; pendingPic=''; showPending(); el('listName').value=''; el('createTitle').textContent='New list'; el('saveBtn').textContent='Save and get code'; renderDraft(); go('create'); setTimeout(()=>el('listName').focus(),30); }
+async function editList(l){
+  const full = l.full || !l.code ? l : await latest(l);
+  if (!full || full.gone) { toast("Couldn't load the list. Check your connection."); return; }
+  draft = JSON.parse(JSON.stringify(full)); pendingPic=''; showPending();
+  el('listName').value=draft.n; el('createTitle').textContent='Edit list'; el('saveBtn').textContent='Save changes'; renderDraft(); go('create');
+}
+async function swipeOwn(l){
+  const full = l.full || !l.code ? l : await latest(l);
+  playList(full || l);
+}
+/* thumbnails: crop to 16:9, shrink, jpeg */
+let pendingPic = '', pickTarget = -1;
+function showPending(){ const b=el('picBtn'); b.classList.toggle('has', !!pendingPic); b.style.backgroundImage = pendingPic?`url(${pendingPic})`:''; b.title = pendingPic ? 'Thumbnail added (click to change)' : 'Add a thumbnail (optional)'; }
+function pickFor(ix){ pickTarget = ix; el('fileIn').value=''; el('fileIn').click(); }
+el('fileIn').addEventListener('change', e=>{ const f=e.target.files[0]; if (f) useImage(f, pickTarget); });
+document.addEventListener('paste', e=>{
+  if (view!=='create') return;
+  const f = [...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/'));
+  if (f) { e.preventDefault(); useImage(f, -1); }
+});
+async function useImage(file, ix){
+  try {
+    const p = await toThumb(file);
+    if (ix<0) { pendingPic = p; showPending(); el('ideaTitle').focus(); }
+    else if (draft.i[ix]) { draft.i[ix].p = p; renderDraft(); }
+  } catch(e){ toast("That image couldn't be read. Try a JPG or PNG."); }
+}
+async function toThumb(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok,bad)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=bad; im.src=url; });
+    const W=480, H=270, c=document.createElement('canvas'); c.width=W; c.height=H;
+    const g=c.getContext('2d'); g.fillStyle='#000'; g.fillRect(0,0,W,H);
+    const s=Math.max(W/img.naturalWidth, H/img.naturalHeight), w=img.naturalWidth*s, h=img.naturalHeight*s;
+    g.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+    for (const q of [.78,.68,.56,.45]) { const d=c.toDataURL('image/jpeg',q); if (d.length<=78000) return d; }
+    throw new Error('too big');
+  } finally { URL.revokeObjectURL(url); }
+}
+function removePic(ix){ if (draft.i[ix]) { draft.i[ix].p=''; renderDraft(); } }
 function addIdea(){
   const t = el('ideaTitle').value.trim(); if(!t){ el('ideaTitle').focus(); return; }
   if (draft.i.length>=100) { toast('100 ideas max per list'); return; }
-  draft.i.push({t, d:'', g:''});
+  draft.i.push({t, d:'', g:'', p:pendingPic});
+  pendingPic=''; showPending();
   el('ideaTitle').value=''; el('ideaTitle').focus(); renderDraft();
 }
 function removeIdea(ix){ draft.i.splice(ix,1); renderDraft(); }
 function renderDraft(){
   const n = draft.i.length;
   el('ideaCount').textContent = `${n} idea${n===1?'':'s'}`;
-  el('ideaList').innerHTML = draft.i.map((x,ix)=>`<div class="idea">${swatch(x)}
-    <div><div class="t">${esc(x.t)}</div>${x.d?`<div class="d">${esc(x.d)}</div>`:''}${x.g?`<div class="d">${esc(x.g)}</div>`:''}</div>
+  el('ideaList').innerHTML = draft.i.map((x,ix)=>`<div class="idea"><button class="thumbbtn" title="${x.p?'Change':'Add'} thumbnail" onclick="pickFor(${ix})">${swatch(x)}</button>
+    <div><div class="t">${esc(x.t)}</div>${x.p?`<button class="rmimg" onclick="removePic(${ix})">Remove thumbnail</button>`:''}</div>
     <button class="del" title="Remove" onclick="removeIdea(${ix})"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>`).join('');
 }
 let saving = false;
@@ -478,12 +545,12 @@ async function saveList(){
     if (draft.code && draft.secret) await updateRemote(draft.code, draft.secret, draft);
     else Object.assign(draft, await createRemote(draft));
     const mine = store.get(KEY.mine,[]).filter(x=>x.code!==draft.code);
-    mine.unshift({code:draft.code, secret:draft.secret, n:draft.n, i:draft.i});
+    mine.unshift(slim({code:draft.code, secret:draft.secret, n:draft.n, i:draft.i}));
     store.set(KEY.mine, mine);
-    sideTab('mine'); showShare(mine[0]);
+    sideTab('mine'); showShare({code:draft.code, secret:draft.secret, n:draft.n, i:draft.i, full:true});
   } catch(e){
     toast(e.message==='no free code' ? 'All codes are taken right now. Try again later.' : "Couldn't save. Check your connection and try again.");
-  } finally { saving = false; btn.disabled = false; btn.textContent = 'Save and get code'; }
+  } finally { saving = false; btn.disabled = false; btn.textContent = draft.code ? 'Save changes' : 'Save and get code'; }
 }
 
 /* ---------- share ---------- */
@@ -530,11 +597,13 @@ function renderDeck(){
 }
 function makeCard(idea, k, top){
   const {c,k:ink,light} = colorOf(idea), total = activeList.i.length;
-  const card = document.createElement('div'); card.className='card'+(light?' light':'');
+  const card = document.createElement('div'); card.className='card'+(light?' light':'')+(idea.p?' withshot':'');
   card.style.setProperty('--c',c); card.style.setProperty('--k',ink);
   const info = idea.d || idea.g ? `<div class="info${idea.d?'':' tagonly'}">${idea.d?`<p>${esc(idea.d)}</p>`:''}${idea.g?`<span class="tag">${esc(idea.g)}</span>`:''}</div>` : '';
-  card.innerHTML = `<div class="no"><span>${String(k+1).padStart(2,'0')}/${String(total).padStart(2,'0')}</span></div>
-    <div class="hl" style="font-size:${fitSize(idea.t)}px">${esc(idea.t)}</div>${info}
+  const shot = idea.p ? `<div class="shot" style="background-image:url(${idea.p})"></div>` : '';
+  const size = idea.p ? Math.round(fitSize(idea.t)*.78) : fitSize(idea.t);
+  card.innerHTML = `${shot}<div class="no"><span>${String(k+1).padStart(2,'0')}/${String(total).padStart(2,'0')}</span></div>
+    <div class="hl" style="font-size:${size}px">${esc(idea.t)}</div>${info}
     <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div><div class="stamp super">SUPER<br>LIKE</div>`;
   if (!top) card.style.transform='scale(.96) translateY(8px)';
   else attachDrag(card);
