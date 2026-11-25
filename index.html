@@ -273,9 +273,8 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
     <section class="view" id="v-create">
       <div class="page">
         <h2 id="createTitle">New list</h2>
-        <p class="lead">Add your video ideas, then share the code so other people can swipe through them.</p>
         <div class="fld">
-          <label for="listName">List name and cover photo</label>
+          <label for="listName">List name</label>
           <div class="namerow">
             <button class="cover" type="button" id="coverBtn" title="Add a cover photo (optional)" onclick="pickFor(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></button>
             <input class="input" id="listName" maxlength="60" placeholder="e.g. December uploads">
@@ -289,7 +288,6 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
             <input class="input" id="ideaTitle" maxlength="100" placeholder="Type a video idea" autocomplete="off">
             <button class="plus" type="submit" title="Add" aria-label="Add idea"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></button>
           </form>
-          <div class="muted" style="margin-top:6px">Thumbnails are optional. Click the picture button, or paste an image.</div>
           <input type="file" id="fileIn" accept="image/*" hidden>
         </div>
         <div class="count" id="ideaCount">0 ideas</div>
@@ -462,7 +460,7 @@ function sideTab(k){ sideKind=k; document.querySelectorAll('.tabs button').forEa
 function renderSide(){
   const arr = store.get(KEY[sideKind],[]);
   if (!arr.length) {
-    el('rows').innerHTML = `<div class="none">${sideKind==='mine' ? 'You haven\'t made a list yet.' : 'Type a code above and the list will show up here.'}</div>`;
+    el('rows').innerHTML = `<div class="none">${sideKind==='mine' ? 'No lists yet' : 'Nothing added yet'}</div>`;
     return;
   }
   const cur = (view==='swipe'||view==='results') && activeList ? activeList.code : (view==='share' && currentShare ? currentShare.code : null);
@@ -521,10 +519,10 @@ async function joinFromInput(){
     const list = await fetchList(code);
     if (!list) { toast(`No list with code ${code}`); return; }
     el('joinCode').value='';
-    if (isMine(code)) { sideTab('mine'); showShare(store.get(KEY.mine,[]).find(x=>x.code===code)); toast("That's your list. Here's how people voted."); return; }
+    if (isMine(code)) { sideTab('mine'); showShare(store.get(KEY.mine,[]).find(x=>x.code===code)); toast('Your list'); return; }
     addToAdded(code, list);
     sideTab('recent');
-    toast(`Added "${list.n}". Tap it to start.`);
+    toast(`Added ${list.n}`);
   } catch(e){ toast("Couldn't reach the server. Try again."); }
   finally { btn.disabled = false; btn.textContent = 'Add'; }
 }
@@ -655,8 +653,8 @@ function renderStats(){
     const tot=L+S+N; return {x, ix, L, S, N, tot, pct: tot ? Math.round((L+S)/tot*100) : -1};
   }).sort((a,b)=> b.pct-a.pct || b.S-a.S || a.ix-b.ix);
   const n = voters.length;
-  el('statsSum').textContent = n ? `${n} ${n===1?'person has':'people have'} swiped. Sorted by how many liked each one.` : '';
-  if (!n) { el('statsList').innerHTML = `<div class="empty">Nobody has swiped yet. Send people code <b>${esc(l.code)}</b>. They type it into "Got a code from someone?" and their votes show up here live.</div>`; return; }
+  el('statsSum').textContent = n ? `${n} ${n===1?'person':'people'} swiped` : '';
+  if (!n) { el('statsList').innerHTML = `<div class="empty">Nobody has swiped yet</div>`; return; }
   const w = (a,t) => t ? (a/t*100).toFixed(1)+'%' : '0';
   el('statsList').innerHTML = rows.map((r,i)=>`<div class="stat">${swatch(r.x)}
       <div class="t" title="${esc(r.x.t)}">${r.tot?`<span class="rank">#${i+1}</span>`:''}${esc(r.x.t)}</div>
@@ -780,10 +778,10 @@ function showResults(){
     const arr = store.get(KEY.recent,[]); const r = arr.find(x=>x.code===activeList.code);
     if (r){ r.liked=liked; store.set(KEY.recent,arr); }
     if (!isMine(activeList.code)) {
-      el('resNote').textContent = 'Sending your votes…';
+      el('resNote').textContent = 'Sending votes…';
       sendVotes(activeList, votes)
-        .then(()=>{ el('resNote').textContent = 'Your votes were sent to whoever made this list. Swipe again to change them.'; })
-        .catch(()=>{ el('resNote').textContent = "Couldn't send your votes. Swipe again when you're back online."; });
+        .then(()=>{ el('resNote').textContent = 'Votes sent'; })
+        .catch(()=>{ el('resNote').textContent = "Couldn't send votes. Try again online."; });
     }
   }
   document.querySelectorAll('.res-filter button').forEach((b,i)=>b.classList.toggle('on',i===0));
@@ -800,7 +798,7 @@ function renderRes(f){
 function copyResults(){
   const mark = {super:'[SUPER]', like:'[yes]', nope:'[no]'};
   const lines = activeList.i.map((x,k)=>`${mark[votes[k]]} ${x.t}`);
-  copyText(`My picks for "${activeList.n}"${activeList.code?` (code ${activeList.code})`:''}:\n` + lines.join('\n'), 'Copied. Paste it in a message to send it back.');
+  copyText(`My picks for "${activeList.n}"${activeList.code?` (code ${activeList.code})`:''}:\n` + lines.join('\n'), 'Copied');
 }
 
 /* ---------- start ---------- */
