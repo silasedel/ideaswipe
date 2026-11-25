@@ -53,8 +53,14 @@ a{color:inherit}
 .cover svg{width:24px;height:24px}
 .cover.has{border:0}
 .cover.has svg{display:none}
-.share-head{display:flex;gap:14px;align-items:center;margin-bottom:22px}
-.share-head .lead{margin:0}
+.share-head{display:flex;gap:14px;align-items:center}
+.sh-text{flex:1;min-width:0}
+.sh-text h2{margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-meta{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:14px;flex-wrap:wrap}
+.codepill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #cfd4da;border-radius:999px;padding:4px 10px;font-size:13px;color:var(--ink2)}
+.codepill b{font:700 15px/1 Roboto,Arial,sans-serif;letter-spacing:2px;color:var(--ink)}
+.codepill svg{width:13px;height:13px}
+.codepill:hover{border-color:var(--brand1)}
 .share-head .swatch{width:64px;height:64px;border-radius:8px}
 .row .meta{flex:1;min-width:0}
 .row .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -169,7 +175,7 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 .keys kbd{display:inline-block;min-width:22px;padding:1px 5px;margin-right:4px;border:1px solid #cfd4da;border-bottom-width:2px;border-radius:4px;background:#fff;font:11px/1.6 ui-monospace,Menlo,monospace;text-align:center;color:var(--ink)}
 
 /* stats (your own lists) */
-.stats{margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}
+.stats{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
 .stats-head{display:flex;align-items:center;justify-content:space-between}
 .stats-head h3{margin:0;font-size:19px}
 .live{font-size:12px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px}
@@ -294,19 +300,13 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 
     <section class="view" id="v-share">
       <div class="page">
-        <div class="share-head"><div id="shareCover"></div><div><h2 id="shareName"></h2><p class="lead" id="shareCount"></p></div></div>
-        <div class="bigcode">
-          <div class="digits" id="shareCode"></div>
-          <div class="muted">People type this into the "Got a code" box and the list shows up for them.</div>
-          <button class="btn main sm" style="margin-top:12px" onclick="copyText(el('shareCode').textContent,'Code copied')">Copy code</button>
-        </div>
-        <div class="fld">
-          <label>Or send a link</label>
-          <div class="copyrow"><input class="input" id="shareLink" readonly onclick="this.select()"><button class="btn line sm" onclick="copyText(el('shareLink').value,'Link copied')">Copy</button></div>
-        </div>
-        <div class="share-actions" style="margin-top:0">
-          <button class="btn line" onclick="editList(currentShare)">Edit list</button>
-          <button class="btn line" id="nativeShare" style="display:none" onclick="nativeShare()">Share…</button>
+        <div class="share-head">
+          <div id="shareCover"></div>
+          <div class="sh-text">
+            <h2 id="shareName"></h2>
+            <div class="sh-meta"><span id="shareCount"></span><button class="codepill" title="Copy code" onclick="copyText(el('shareCode').textContent,'Code copied')">Code <b id="shareCode"></b><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 10.5V4a1 1 0 011-1h6.5"/></svg></button></div>
+          </div>
+          <button class="btn line sm" onclick="editList(currentShare)">Edit</button>
         </div>
         <div class="stats">
           <div class="stats-head">
@@ -317,7 +317,6 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
           <div id="statsList"></div>
           <div class="legend"><span><i class="k-s"></i>Super like</span><span><i class="k-l"></i>Like</span><span><i class="k-n"></i>Nope</span></div>
         </div>
-        <p class="note">If you edit the list, the code stays the same and votes on ideas you keep stay put. Only you can edit it, from this browser.</p>
       </div>
     </section>
 
@@ -617,8 +616,6 @@ function showShare(l){
   el('shareCover').innerHTML = listIcon(l);
   el('shareCount').textContent = `${l.i.length} idea${l.i.length===1?'':'s'}`;
   el('shareCode').textContent = l.code;
-  el('shareLink').value = location.origin + location.pathname + '#' + l.code;
-  el('nativeShare').style.display = navigator.share ? '' : 'none';
   go('share');
   watchVotes(l.code);
   if (!l.full) latest(l).then(full=>{ if (full && !full.gone && currentShare && currentShare.code===l.code) { currentShare = full; el('shareCover').innerHTML = listIcon(full); renderStats(); } });
@@ -659,7 +656,7 @@ function renderStats(){
   }).sort((a,b)=> b.pct-a.pct || b.S-a.S || a.ix-b.ix);
   const n = voters.length;
   el('statsSum').textContent = n ? `${n} ${n===1?'person has':'people have'} swiped. Sorted by how many liked each one.` : '';
-  if (!n) { el('statsList').innerHTML = `<div class="empty">Nobody has swiped yet. Send people code <b>${esc(l.code)}</b> and the results show up here as they come in.</div>`; return; }
+  if (!n) { el('statsList').innerHTML = `<div class="empty">Nobody has swiped yet. Send people code <b>${esc(l.code)}</b>. They type it into "Got a code from someone?" and their votes show up here live.</div>`; return; }
   const w = (a,t) => t ? (a/t*100).toFixed(1)+'%' : '0';
   el('statsList').innerHTML = rows.map((r,i)=>`<div class="stat">${swatch(r.x)}
       <div class="t" title="${esc(r.x.t)}">${r.tot?`<span class="rank">#${i+1}</span>`:''}${esc(r.x.t)}</div>
