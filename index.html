@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23fd3a5c'/><path d='M12 9.5v13l10.5-6.5z' fill='white'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --brand1:#fd267a; --brand2:#ff6036;
@@ -45,7 +45,7 @@ a{color:inherit}
 .row{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer}
 .row:hover{background:#f7f8f9}
 .row.current{background:#fff1f4}
-.swatch{width:44px;height:44px;border-radius:5px;flex-shrink:0;display:grid;place-items:center;color:#fff;font:15px/1 Anton,Impact,sans-serif}
+.swatch{width:44px;height:44px;border-radius:5px;flex-shrink:0;display:grid;place-items:center;color:#fff;font:700 14px/1 Roboto,Arial,sans-serif}
 .row .meta{flex:1;min-width:0}
 .row .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .sub{font-size:13px;color:var(--ink2)}
@@ -117,7 +117,7 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 /* share */
 .code-in{font:600 18px/1 ui-monospace,Menlo,monospace;letter-spacing:6px;text-align:center}
 .bigcode{border:1px solid var(--line);background:#fff;border-radius:8px;padding:22px 20px;text-align:center;margin-bottom:22px}
-.bigcode .digits{font:44px/1 Anton,Impact,sans-serif;letter-spacing:10px;margin-bottom:10px;padding-left:10px}
+.bigcode .digits{font:700 44px/1 Roboto,Arial,sans-serif;letter-spacing:10px;margin-bottom:10px;padding-left:10px}
 .row .code{font:12px/1 ui-monospace,Menlo,monospace;color:var(--ink2);margin-left:6px}
 .btn:disabled{opacity:.6;cursor:default}
 .copyrow{display:flex;gap:8px;margin-bottom:6px}
@@ -136,12 +136,12 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 .card .shot + .no{position:absolute;top:0;left:0;right:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);opacity:1}
 .card.withshot .hl{padding-top:14px;padding-bottom:14px}
 .card .no{padding:18px 20px 0;font:13px/1 ui-monospace,Menlo,monospace;opacity:.75;display:flex;justify-content:space-between}
-.card .hl{flex:1;display:flex;align-items:center;padding:0 22px;font-family:Anton,Impact,"Arial Narrow Bold",sans-serif;text-transform:uppercase;line-height:1.02;letter-spacing:.2px;word-break:break-word}
+.card .hl{flex:1;display:flex;align-items:center;padding:0 22px;font-family:Roboto,Arial,sans-serif;font-weight:700;line-height:1.18;letter-spacing:-.2px;word-break:break-word}
 .card .info{padding:16px 20px 20px;background:rgba(0,0,0,.22);color:#fff}
 .card .info p{margin:0;font-size:16px;line-height:1.4}
 .card .tag{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,.22)}
 .card .info.tagonly .tag{margin-top:0}
-.stamp{position:absolute;top:30px;padding:2px 10px;border:4px solid;border-radius:6px;font:38px/1.1 Anton,Impact,sans-serif;letter-spacing:2px;opacity:0;pointer-events:none;background:rgba(255,255,255,.08)}
+.stamp{position:absolute;top:30px;padding:2px 10px;border:4px solid;border-radius:6px;font:900 36px/1.1 Roboto,Arial,sans-serif;letter-spacing:1px;opacity:0;pointer-events:none;background:rgba(255,255,255,.08)}
 .stamp.like{left:22px;color:var(--like);border-color:var(--like);transform:rotate(-16deg)}
 .stamp.nope{right:22px;color:var(--nope);border-color:var(--nope);transform:rotate(16deg)}
 .stamp.super{left:50%;top:auto;bottom:34%;color:var(--super);border-color:var(--super);transform:translateX(-50%) rotate(-6deg);text-align:center;line-height:1}
@@ -586,7 +586,7 @@ function playDemo(){
     {t:'Watching my first ever upload',d:'',g:'react'}
   ]});
 }
-function fitSize(t){ const n=t.length; return n<18?58: n<32?48: n<50?40: n<75?33: 28; }
+function fitSize(t){ const n=t.length; return n<20?44: n<36?38: n<56?33: n<80?29: 26; }
 function renderDeck(){
   const deck = el('deck'); deck.innerHTML='';
   const total = activeList.i.length;
