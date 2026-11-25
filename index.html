@@ -81,6 +81,10 @@ a{color:inherit}
 #v-empty .ghostcard svg{width:44px;height:44px}
 
 /* create */
+.addbar{display:flex;gap:8px}
+.plus{width:44px;height:44px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(90deg,var(--brand1),var(--brand2))}
+.plus:hover{filter:brightness(1.06)}
+.plus svg{width:20px;height:20px}
 .fld{margin-bottom:18px}
 .fld > label{display:block;font-weight:600;margin-bottom:6px}
 textarea.input{resize:vertical;min-height:70px;line-height:1.4}
@@ -100,6 +104,11 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 .count{font-weight:700;margin-top:22px}
 
 /* share */
+.code-in{font:600 18px/1 ui-monospace,Menlo,monospace;letter-spacing:6px;text-align:center}
+.bigcode{border:1px solid var(--line);background:#fff;border-radius:8px;padding:22px 20px;text-align:center;margin-bottom:22px}
+.bigcode .digits{font:44px/1 Anton,Impact,sans-serif;letter-spacing:10px;margin-bottom:10px;padding-left:10px}
+.row .code{font:12px/1 ui-monospace,Menlo,monospace;color:var(--ink2);margin-left:6px}
+.btn:disabled{opacity:.6;cursor:default}
 .copyrow{display:flex;gap:8px;margin-bottom:6px}
 .copyrow .input{font:13px/1.3 ui-monospace,Menlo,monospace;background:#f7f8f9;color:var(--ink2)}
 .share-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
@@ -184,13 +193,13 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
       <form class="join" onsubmit="event.preventDefault();joinFromInput()">
         <label for="joinCode">Got a code from someone?</label>
         <div class="join-row">
-          <input class="input" id="joinCode" placeholder="Paste the code or link" autocomplete="off" autocapitalize="off" spellcheck="false">
-          <button class="btn main sm" type="submit">Open</button>
+          <input class="input code-in" id="joinCode" placeholder="0000" inputmode="numeric" maxlength="4" autocomplete="off">
+          <button class="btn main sm" type="submit" id="joinBtn">Add</button>
         </div>
       </form>
       <div class="tabs">
+        <button data-t="recent" onclick="sideTab('recent')">Added</button>
         <button class="on" data-t="mine" onclick="sideTab('mine')">Your lists</button>
-        <button data-t="recent" onclick="sideTab('recent')">Swiped</button>
       </div>
       <div class="rows" id="rows"></div>
     </div>
@@ -214,30 +223,21 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
     <section class="view" id="v-create">
       <div class="page">
         <h2 id="createTitle">New list</h2>
-        <p class="lead">Add your video ideas, then share the link so other people can swipe through them.</p>
+        <p class="lead">Add your video ideas, then share the code so other people can swipe through them.</p>
         <div class="fld">
           <label for="listName">List name</label>
           <input class="input" id="listName" maxlength="60" placeholder="e.g. December uploads">
         </div>
         <div class="fld">
           <label for="ideaTitle">Add an idea</label>
-          <div class="adder">
-            <input class="input" id="ideaTitle" maxlength="100" placeholder="Video title">
-            <textarea class="input" id="ideaDesc" maxlength="280" rows="2" placeholder="What happens in it (optional)"></textarea>
-            <div class="two">
-              <input class="input" id="ideaTag" maxlength="30" placeholder="Tag (optional)">
-              <button class="btn main sm" onclick="addIdea()">Add</button>
-            </div>
-          </div>
-          <div style="margin-top:10px"><button class="textlink" onclick="toggleBulk()">Paste a bunch at once</button></div>
-          <div id="bulkWrap" style="display:none;margin-top:10px">
-            <textarea class="input" id="bulk" rows="6" placeholder="One idea per line. Use | to add a description and tag:&#10;I spent 24 hours in a treehouse | built it myself | challenge&#10;Ranking every fast food fry"></textarea>
-            <button class="btn line sm" style="margin-top:8px" onclick="addBulk()">Add lines</button>
-          </div>
+          <form class="addbar" onsubmit="event.preventDefault();addIdea()">
+            <input class="input" id="ideaTitle" maxlength="100" placeholder="Type a video idea" autocomplete="off">
+            <button class="plus" type="submit" title="Add" aria-label="Add idea"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></button>
+          </form>
         </div>
         <div class="count" id="ideaCount">0 ideas</div>
         <div class="ideas" id="ideaList"></div>
-        <button class="btn main wide" onclick="saveList()">Save and get link</button>
+        <button class="btn main wide" id="saveBtn" onclick="saveList()">Save and get code</button>
       </div>
     </section>
 
@@ -245,22 +245,21 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
       <div class="page">
         <h2 id="shareName"></h2>
         <p class="lead" id="shareCount"></p>
-        <div class="fld">
-          <label>Link</label>
-          <div class="copyrow"><input class="input" id="shareLink" readonly onclick="this.select()"><button class="btn main sm" onclick="copyText(el('shareLink').value,'Link copied')">Copy</button></div>
-          <div class="muted">Opening this link goes straight to swiping.</div>
+        <div class="bigcode">
+          <div class="digits" id="shareCode"></div>
+          <div class="muted">People type this into the "Got a code" box and the list shows up for them.</div>
+          <button class="btn line sm" style="margin-top:12px" onclick="copyText(el('shareCode').textContent,'Code copied')">Copy code</button>
         </div>
         <div class="fld">
-          <label>Code</label>
-          <div class="copyrow"><input class="input" id="shareCode" readonly onclick="this.select()"><button class="btn line sm" onclick="copyText(el('shareCode').value,'Code copied')">Copy</button></div>
-          <div class="muted">People can paste this into the "Got a code" box instead.</div>
+          <label>Or send a link</label>
+          <div class="copyrow"><input class="input" id="shareLink" readonly onclick="this.select()"><button class="btn line sm" onclick="copyText(el('shareLink').value,'Link copied')">Copy</button></div>
         </div>
         <div class="share-actions">
           <button class="btn main" onclick="playList(currentShare)">Swipe it yourself</button>
           <button class="btn line" onclick="editList(currentShare)">Edit</button>
           <button class="btn line" id="nativeShare" style="display:none" onclick="nativeShare()">Share…</button>
         </div>
-        <p class="note">The ideas are packed into the link itself, so there's no account and nothing stored on a server. If you edit the list, send the new link.</p>
+        <p class="note">If you edit the list later, the code stays the same and people get the new version next time they open it. Only you can edit it, from this browser.</p>
       </div>
     </section>
 
@@ -300,7 +299,47 @@ textarea.input{resize:vertical;min-height:70px;line-height:1.4}
 const el = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ---------- card colours: flat, picked per idea ---------- */
+/* ---------- database (Firebase Realtime Database, REST) ---------- */
+const DB = 'https://ideaswipe-5a6d7-default-rtdb.firebaseio.com';
+const db = {
+  async get(path){
+    const r = await fetch(`${DB}/${path}.json`);
+    if (!r.ok) throw new Error('get ' + r.status);
+    return r.json();
+  },
+  async patch(body){
+    const r = await fetch(`${DB}/.json`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if (!r.ok) throw new Error('write ' + r.status);
+    return r.json();
+  }
+};
+const clean = (l, v) => ({n:l.n, u:Date.now(), v, i:l.i.slice(0,100).map(x=>{const o={t:x.t}; if(x.d)o.d=x.d; if(x.g)o.g=x.g; return o;})});
+function randStr(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a,b=>b.toString(16).padStart(2,'0')).join(''); }
+function randSecret(){ const a=new Uint8Array(18); crypto.getRandomValues(a); return Array.from(a,b=>b.toString(16).padStart(2,'0')).join(''); }
+function randCode(){ const a=new Uint32Array(1); crypto.getRandomValues(a); return String(1000 + a[0] % 9000); }
+async function createRemote(list){
+  const secret = randSecret();
+  for (let tries=0; tries<25; tries++){
+    const code = randCode();
+    if (await db.get('pub/'+code) !== null) continue;
+    const v = randStr(6);
+    try { await db.patch({['pub/'+code]: clean(list, v), ['sec/'+code]: secret, ['proof/'+code]: secret + v}); return {code, secret}; }
+    catch(e){ if (!/40[13]/.test(e.message)) throw e; }
+  }
+  throw new Error('no free code');
+}
+async function updateRemote(code, secret, list){ const v = randStr(6); await db.patch({['pub/'+code]: clean(list, v), ['proof/'+code]: secret + v}); }
+async function deleteRemote(code, secret){ await db.patch({['pub/'+code]: null, ['proof/'+code]: secret + 'del'}); }
+function normalize(list){
+  if (!list || typeof list !== 'object') return null;
+  const items = Array.isArray(list.i) ? list.i : Object.values(list.i||{});
+  const i = items.filter(x=>x && x.t).map(x=>({t:String(x.t).slice(0,100), d:x.d?String(x.d).slice(0,280):'', g:x.g?String(x.g).slice(0,30):''}));
+  if (!i.length) return null;
+  return {n:String(list.n||'Video ideas').slice(0,60), i, u:list.u||0};
+}
+async function fetchList(code){ return normalize(await db.get('pub/'+code)); }
+
+/* ---------- card colours ---------- */
 const COLORS = [
   ['#d93a2b','#fff'],['#1d4fa3','#fff'],['#127a52','#fff'],['#f2b632','#1d1a14'],['#5b2e91','#fff'],
   ['#1f242b','#fff'],['#c4500f','#fff'],['#0b6e80','#fff'],['#b0174f','#fff'],['#e9e2d0','#1d1a14'],['#3f6b12','#fff']
@@ -310,41 +349,23 @@ function colorOf(idea){ const [c,k] = COLORS[hash((idea.t||'')+'|'+(idea.d||''))
 function initials(t){ return (t||'?').replace(/[^A-Za-z0-9 ]/g,'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '#'; }
 function swatch(idea){ const {c,k}=colorOf(idea); return `<div class="swatch" style="background:${c};color:${k}">${esc(initials(idea.t))}</div>`; }
 
-/* ---------- the list lives inside the code ---------- */
-const b64u = {
-  enc: bytes => { let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
-  dec: str => { str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const s=atob(str); return Uint8Array.from(s,c=>c.charCodeAt(0)); }
-};
-async function pipe(bytes, stream){ return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
-async function encodeList(list){
-  const slim = {n:list.n, i:list.i.map(x=>{const o={t:x.t}; if(x.d)o.d=x.d; if(x.g)o.g=x.g; return o;})};
-  const raw = new TextEncoder().encode(JSON.stringify(slim));
-  if (typeof CompressionStream !== 'undefined') { try { return 'z' + b64u.enc(await pipe(raw, new CompressionStream('deflate-raw'))); } catch(e){} }
-  return 'j' + b64u.enc(raw);
+/* ---------- old long links (#d=...) still open ---------- */
+const b64dec = str => { str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const s=atob(str); return Uint8Array.from(s,c=>c.charCodeAt(0)); };
+async function decodeOld(code){
+  let bytes = b64dec(code.slice(1));
+  if (code[0]==='z') bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  return normalize(JSON.parse(new TextDecoder().decode(bytes)));
 }
-async function decodeList(code){
-  code = code.trim();
-  const m = code.match(/[#&?]d=([A-Za-z0-9_\-]+)/); if (m) code = m[1];
-  code = code.replace(/\s+/g,'');
-  let bytes = b64u.dec(code.slice(1));
-  if (code[0] === 'z') bytes = await pipe(bytes, new DecompressionStream('deflate-raw'));
-  else if (code[0] !== 'j') throw new Error('bad code');
-  const list = JSON.parse(new TextDecoder().decode(bytes));
-  if (!list || !Array.isArray(list.i)) throw new Error('bad');
-  list.i = list.i.filter(x=>x && x.t).map(x=>({t:String(x.t).slice(0,100), d:x.d?String(x.d).slice(0,280):'', g:x.g?String(x.g).slice(0,30):''}));
-  if (!list.i.length) throw new Error('empty');
-  list.n = String(list.n || 'Video ideas').slice(0,60);
-  return list;
-}
-const shareUrl = code => location.origin + location.pathname + '#d=' + code;
 
 const store = {
   get(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def }catch(e){ return def } },
   set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} }
 };
+// is_mine:  [{code, secret, n, i}]   lists you made
+// is_added: [{code, n, i, liked}]    lists you added with a code
 
 /* ---------- navigation ---------- */
-const TITLES = {create:'New list', share:'Share', swipe:'', results:'Results'};
+const TITLES = {create:'New list', share:'Share', results:'Results'};
 let view = 'empty';
 function go(id){
   const home = id==='home';
@@ -355,7 +376,7 @@ function go(id){
   if (home && location.hash) history.replaceState(null,'',location.pathname);
   renderSide();
 }
-function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1800); }
+function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 async function copyText(text,msg){
   try { await navigator.clipboard.writeText(text); }
   catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
@@ -364,57 +385,79 @@ async function copyText(text,msg){
 
 /* ---------- sidebar ---------- */
 let sideKind = 'mine';
+const KEY = {mine:'is_mine', recent:'is_added'};
 function sideTab(k){ sideKind=k; document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k)); renderSide(); }
 function renderSide(){
-  const arr = store.get(sideKind==='mine'?'is_mine':'is_recent',[]);
+  const arr = store.get(KEY[sideKind],[]);
   if (!arr.length) {
-    el('rows').innerHTML = `<div class="none">${sideKind==='mine' ? 'You haven\'t made a list yet.' : 'Lists people send you will show up here.'}</div>`;
+    el('rows').innerHTML = `<div class="none">${sideKind==='mine' ? 'You haven\'t made a list yet.' : 'Type a code above and the list will show up here.'}</div>`;
     return;
   }
-  const cur = (view==='swipe'||view==='results') && activeList ? activeList : (view==='share' ? currentShare : null);
+  const cur = (view==='swipe'||view==='results') && activeList ? activeList.code : (view==='share' && currentShare ? currentShare.code : null);
   el('rows').innerHTML = arr.map((l,ix)=>{
-    const isCur = cur && cur.n===l.n && cur.i.length===l.i.length;
     const sub = `${l.i.length} idea${l.i.length===1?'':'s'}` + (l.liked!=null ? ` · liked ${l.liked}` : '');
-    return `<div class="row${isCur?' current':''}" onclick="openSaved(${ix})">${swatch(l.i[0]||{t:l.n})}
-      <div class="meta"><div class="name">${esc(l.n)}</div><div class="sub">${sub}</div></div>
+    return `<div class="row${cur && cur===l.code?' current':''}" onclick="openSaved(${ix})">${swatch(l.i[0]||{t:l.n})}
+      <div class="meta"><div class="name">${esc(l.n)}${l.code?`<span class="code">${l.code}</span>`:''}</div><div class="sub">${sub}</div></div>
       <button class="del" title="Remove" onclick="event.stopPropagation();removeSaved(${ix})"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>`;
   }).join('');
 }
-function openSaved(ix){
-  const l = store.get(sideKind==='mine'?'is_mine':'is_recent',[])[ix]; if(!l) return;
-  if (sideKind==='mine') showShare(l); else playList(l);
+async function openSaved(ix){
+  const arr = store.get(KEY[sideKind],[]); const l = arr[ix]; if(!l) return;
+  if (sideKind==='mine') { showShare(l); return; }
+  playList(l);
+  // pick up any edits the creator made since it was added
+  if (l.code) try {
+    const fresh = await fetchList(l.code);
+    if (!fresh) return;
+    if (JSON.stringify(fresh.i)!==JSON.stringify(l.i) || fresh.n!==l.n) {
+      Object.assign(l, {n:fresh.n, i:fresh.i}); store.set(KEY.recent, arr);
+      if (activeList && activeList.code===l.code && idx===0) { playList(l); toast('This list was updated'); }
+      else renderSide();
+    }
+  } catch(e){}
 }
-function removeSaved(ix){
-  const key = sideKind==='mine'?'is_mine':'is_recent'; const arr = store.get(key,[]);
-  const l = arr[ix]; if (!l || !confirm(`Remove "${l.n}"?`)) return;
-  arr.splice(ix,1); store.set(key,arr); renderSide();
+async function removeSaved(ix){
+  const key = KEY[sideKind]; const arr = store.get(key,[]); const l = arr[ix]; if (!l) return;
+  if (sideKind==='mine') {
+    if (!confirm(`Delete "${l.n}"? Code ${l.code} will stop working for everyone.`)) return;
+    try { if (l.code && l.secret) await deleteRemote(l.code, l.secret); }
+    catch(e){ toast("Couldn't delete it. Check your connection."); return; }
+  } else if (!confirm(`Remove "${l.n}" from your list?`)) return;
+  arr.splice(ix,1); store.set(key,arr);
+  if (activeList && activeList.code===l.code || currentShare && currentShare.code===l.code) go('home'); else renderSide();
 }
+function addToAdded(code, list){
+  const arr = store.get(KEY.recent,[]);
+  const old = arr.find(x=>x.code===code);
+  const entry = {code, n:list.n, i:list.i, liked: old ? old.liked : null};
+  store.set(KEY.recent, [entry, ...arr.filter(x=>x.code!==code)].slice(0,100));
+  return entry;
+}
+el('joinCode').addEventListener('input', e=>{ e.target.value = e.target.value.replace(/\D/g,'').slice(0,4); });
 async function joinFromInput(){
-  const v = el('joinCode').value.trim();
-  if (!v) { el('joinCode').focus(); return; }
-  try { const list = await decodeList(v); el('joinCode').value=''; playList(list, true); }
-  catch(e){ toast("That code didn't work. Check you copied all of it."); }
+  const code = el('joinCode').value.trim();
+  if (!/^\d{4}$/.test(code)) { toast('Codes are 4 numbers'); el('joinCode').focus(); return; }
+  const btn = el('joinBtn'); btn.disabled = true; btn.textContent = '…';
+  try {
+    const list = await fetchList(code);
+    if (!list) { toast(`No list with code ${code}`); return; }
+    el('joinCode').value='';
+    addToAdded(code, list);
+    sideTab('recent');
+    toast(`Added "${list.n}". Tap it to start.`);
+  } catch(e){ toast("Couldn't reach the server. Try again."); }
+  finally { btn.disabled = false; btn.textContent = 'Add'; }
 }
 
 /* ---------- create / edit ---------- */
-let draft = {n:'', i:[]}, editingId = null;
-function startCreate(){ draft={n:'',i:[]}; editingId=null; el('listName').value=''; el('createTitle').textContent='New list'; renderDraft(); go('create'); setTimeout(()=>el('listName').focus(),30); }
-function editList(l){ draft = JSON.parse(JSON.stringify(l)); editingId = l.id||null; el('listName').value=draft.n; el('createTitle').textContent='Edit list'; renderDraft(); go('create'); }
+let draft = {n:'', i:[]};
+function startCreate(){ draft={n:'',i:[]}; el('listName').value=''; el('createTitle').textContent='New list'; renderDraft(); go('create'); setTimeout(()=>el('listName').focus(),30); }
+function editList(l){ draft = JSON.parse(JSON.stringify(l)); el('listName').value=draft.n; el('createTitle').textContent='Edit list'; renderDraft(); go('create'); }
 function addIdea(){
   const t = el('ideaTitle').value.trim(); if(!t){ el('ideaTitle').focus(); return; }
-  draft.i.push({t, d:el('ideaDesc').value.trim(), g:el('ideaTag').value.trim()});
-  el('ideaTitle').value=''; el('ideaDesc').value=''; el('ideaTitle').focus(); renderDraft();
-}
-el('ideaTitle').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addIdea(); } });
-el('ideaTag').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addIdea(); } });
-function toggleBulk(){ const w=el('bulkWrap'); w.style.display = w.style.display==='none'?'block':'none'; if(w.style.display==='block') el('bulk').focus(); }
-function addBulk(){
-  let n=0;
-  el('bulk').value.split('\n').forEach(line=>{
-    const [t,d,g] = line.split('|').map(s=>(s||'').trim());
-    if (t) { draft.i.push({t:t.slice(0,100), d:(d||'').slice(0,280), g:(g||'').slice(0,30)}); n++; }
-  });
-  el('bulk').value=''; renderDraft(); if(n) toast(`Added ${n}`);
+  if (draft.i.length>=100) { toast('100 ideas max per list'); return; }
+  draft.i.push({t, d:'', g:''});
+  el('ideaTitle').value=''; el('ideaTitle').focus(); renderDraft();
 }
 function removeIdea(ix){ draft.i.splice(ix,1); renderDraft(); }
 function renderDraft(){
@@ -424,41 +467,44 @@ function renderDraft(){
     <div><div class="t">${esc(x.t)}</div>${x.d?`<div class="d">${esc(x.d)}</div>`:''}${x.g?`<div class="d">${esc(x.g)}</div>`:''}</div>
     <button class="del" title="Remove" onclick="removeIdea(${ix})"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>`).join('');
 }
-function saveList(){
+let saving = false;
+async function saveList(){
+  if (saving) return;
   draft.n = el('listName').value.trim() || 'Video ideas';
   if (el('ideaTitle').value.trim()) addIdea();
   if (!draft.i.length) { toast('Add at least one idea first'); el('ideaTitle').focus(); return; }
-  draft.id = editingId || draft.id || Date.now().toString(36);
-  const mine = store.get('is_mine',[]).filter(x=>x.id!==draft.id);
-  mine.unshift(draft); store.set('is_mine', mine.slice(0,50));
-  sideTab('mine'); showShare(draft);
+  const btn = el('saveBtn'); saving = true; btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (draft.code && draft.secret) await updateRemote(draft.code, draft.secret, draft);
+    else Object.assign(draft, await createRemote(draft));
+    const mine = store.get(KEY.mine,[]).filter(x=>x.code!==draft.code);
+    mine.unshift({code:draft.code, secret:draft.secret, n:draft.n, i:draft.i});
+    store.set(KEY.mine, mine);
+    sideTab('mine'); showShare(mine[0]);
+  } catch(e){
+    toast(e.message==='no free code' ? 'All codes are taken right now. Try again later.' : "Couldn't save. Check your connection and try again.");
+  } finally { saving = false; btn.disabled = false; btn.textContent = 'Save and get code'; }
 }
 
 /* ---------- share ---------- */
 let currentShare=null;
-async function showShare(l){
+function showShare(l){
   currentShare = l;
-  const code = await encodeList(l);
   el('shareName').textContent = l.n;
-  el('shareCount').textContent = `${l.i.length} idea${l.i.length===1?'':'s'}. Send the link to whoever you want to swipe.`;
-  el('shareLink').value = shareUrl(code);
-  el('shareCode').value = code;
+  el('shareCount').textContent = `${l.i.length} idea${l.i.length===1?'':'s'}`;
+  el('shareCode').textContent = l.code;
+  el('shareLink').value = location.origin + location.pathname + '#' + l.code;
   el('nativeShare').style.display = navigator.share ? '' : 'none';
   go('share');
 }
-function nativeShare(){ navigator.share({title:currentShare.n, text:'Swipe through my video ideas', url:el('shareLink').value}).catch(()=>{}); }
+function nativeShare(){ navigator.share({title:currentShare.n, text:`Swipe through my video ideas. Code: ${currentShare.code}`, url:el('shareLink').value}).catch(()=>{}); }
 
 /* ---------- deck ---------- */
 let activeList=null, idx=0, votes=[], busy=false;
-function playList(list, fromCode){
-  activeList = {n:list.n, i:list.i};
+function playList(list){
+  activeList = {n:list.n, i:list.i, code:list.code||null};
   idx=0; votes=[];
   el('deckName').textContent = list.n;
-  if (fromCode) {
-    const rec = store.get('is_recent',[]).filter(r=>r.n!==list.n || r.i.length!==list.i.length);
-    rec.unshift({n:list.n,i:list.i}); store.set('is_recent', rec.slice(0,30));
-    sideTab('recent');
-  }
   go('swipe'); renderDeck();
 }
 function playDemo(){
@@ -559,8 +605,10 @@ document.addEventListener('keydown', e=>{
 function showResults(){
   const liked = votes.filter(v=>v!=='nope').length, sup = votes.filter(v=>v==='super').length;
   el('resSummary').textContent = `You liked ${liked} of ${votes.length}` + (sup?`, and super liked ${sup}.`:'.');
-  const rec = store.get('is_recent',[]); const r = rec.find(x=>x.n===activeList.n && x.i.length===activeList.i.length);
-  if (r){ r.liked=liked; store.set('is_recent',rec); }
+  if (activeList.code) {
+    const arr = store.get(KEY.recent,[]); const r = arr.find(x=>x.code===activeList.code);
+    if (r){ r.liked=liked; store.set(KEY.recent,arr); }
+  }
   document.querySelectorAll('.res-filter button').forEach((b,i)=>b.classList.toggle('on',i===0));
   renderRes('yes'); go('results');
 }
@@ -575,14 +623,21 @@ function renderRes(f){
 function copyResults(){
   const mark = {super:'[SUPER]', like:'[yes]', nope:'[no]'};
   const lines = activeList.i.map((x,k)=>`${mark[votes[k]]} ${x.t}`);
-  copyText(`My picks for "${activeList.n}":\n` + lines.join('\n'), 'Copied. Paste it in a message to send it back.');
+  copyText(`My picks for "${activeList.n}"${activeList.code?` (code ${activeList.code})`:''}:\n` + lines.join('\n'), 'Copied. Paste it in a message to send it back.');
 }
 
 /* ---------- start ---------- */
 async function boot(){
-  if (location.hash.includes('d=')) {
-    try { playList(await decodeList(location.hash), true); return; }
-    catch(e){ toast("That link didn't work. It might have been cut off."); }
+  const h = location.hash.slice(1);
+  if (/^\d{4}$/.test(h)) {
+    try {
+      const list = await fetchList(h);
+      if (list) { sideTab('recent'); playList(addToAdded(h, list)); return; }
+      toast(`No list with code ${h}`);
+    } catch(e){ toast("Couldn't reach the server."); }
+  } else if (h.startsWith('d=')) {
+    try { const list = await decodeOld(h.slice(2)); if (list) { playList(list); return; } }
+    catch(e){ toast("That link didn't work."); }
   }
   go('home');
 }
